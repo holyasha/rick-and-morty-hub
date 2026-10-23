@@ -36,6 +36,9 @@ data class Character(
     val origin: String
 )
 
+// Преобразовано в фрагмент для Лабораторной работы 2
+// Навигация теперь управляется через MainActivity и Navigation Component
+/*
 class ContentActivity : ComponentActivity() {
 
     private val characters = listOf(
@@ -133,6 +136,7 @@ class ContentActivity : ComponentActivity() {
         }
     }
 }
+*/
 
 @Composable
 fun ContentScreen(

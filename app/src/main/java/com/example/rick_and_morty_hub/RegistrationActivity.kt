@@ -29,6 +29,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.rick_and_morty_hub.ui.theme.RickAndMortyTheme
 
+// Преобразовано в фрагмент для Лабораторной работы 2
+// Навигация теперь управляется через MainActivity и Navigation Component
+/*
 class RegistrationActivity : ComponentActivity() {
 
     override fun attachBaseContext(newBase: Context) {
@@ -88,6 +91,7 @@ class RegistrationActivity : ComponentActivity() {
         Log.d("Lifecycle", "RegistrationActivity: onDestroy")
     }
 }
+*/
 
 @Composable
 fun RegistrationScreen(

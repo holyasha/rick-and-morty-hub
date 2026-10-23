@@ -26,6 +26,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.rick_and_morty_hub.ui.theme.RickAndMortyTheme
 
+// Преобразовано в фрагмент для Лабораторной работы 2
+// Навигация теперь управляется через MainActivity и Navigation Component
+/*
 class StartActivity : ComponentActivity() {
 
     private val registrationLauncher =
@@ -123,6 +126,7 @@ class StartActivity : ComponentActivity() {
         finish()
     }
 }
+*/
 
 @Composable
 fun StartScreen(

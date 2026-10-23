@@ -12,6 +12,20 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Rick_and_morty_hub">
         <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.Rick_and_morty_hub"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <!-- Лабораторная работа 2: старые Activity закомментированы -->
+        <!--
+        <activity
             android:name=".StartActivity"
             android:exported="true"
             android:label="@string/app_name"
@@ -41,6 +55,7 @@
             android:label="@string/title_activity_settings"
             android:theme="@style/Theme.Rick_and_morty_hub"
             android:windowSoftInputMode="adjustResize" />
+        -->
     </application>
 
 </manifest>
