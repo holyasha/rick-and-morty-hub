@@ -1,0 +1,66 @@
+<resources>
+
+    <string name="app_name">Rick &amp; Morty Hub</string>
+
+    <string name="start_subtitle">База данных персонажей Rick and Morty</string>
+
+    <string name="login">Логин</string>
+    <string name="password">Пароль</string>
+    <string name="login_button">Войти</string>
+    <string name="registration">Регистрация</string>
+
+    <string name="login_required">Введите логин</string>
+    <string name="password_required">Введите пароль</string>
+
+    <string name="registration_title">Регистрация</string>
+    <string name="first_name">Имя</string>
+    <string name="last_name">Фамилия</string>
+    <string name="email">Email</string>
+    <string name="confirm_password">Подтвердите пароль</string>
+    <string name="register_button">Зарегистрироваться</string>
+
+    <string name="characters_title">Персонажи</string>
+    <string name="settings">Настройки</string>
+
+    <string name="character_status">Статус: %1$s</string>
+    <string name="character_species">Вид: %1$s</string>
+    <string name="character_gender">Пол: %1$s</string>
+    <string name="character_origin">Происхождение: %1$s</string>
+
+    <string name="settings_title">Настройки</string>
+    <string name="appearance">Внешний вид</string>
+    <string name="dark_theme">Тёмная тема</string>
+    <string name="font_size">Размер шрифта</string>
+    <string name="font_size_value">Размер: %1$s</string>
+
+    <string name="language">Язык</string>
+    <string name="russian">Русский</string>
+    <string name="english">English</string>
+
+    <string name="notifications">Уведомления</string>
+
+    <string name="backup">Резервная копия</string>
+    <string name="create_backup">Создать резервную копию</string>
+    <string name="restore_backup">Восстановить из копии</string>
+    <string name="delete_backup">Удалить резервную копию</string>
+
+    <string name="backup_exists">Резервная копия существует</string>
+    <string name="backup_not_exists">Резервной копии нет</string>
+
+    <string name="restore_backup_question">Восстановить данные из резервной копии?</string>
+    <string name="delete_backup_question">Удалить резервную копию?</string>
+
+    <string name="restore">Восстановить</string>
+    <string name="delete">Удалить</string>
+    <string name="cancel">Отмена</string>
+
+    <!-- Для AndroidManifest -->
+    <string name="title_activity_registration">Регистрация</string>
+    <string name="title_activity_content">Персонажи</string>
+    <string name="title_activity_settings">Настройки</string>
+
+    <string name="backup_created">Готово</string>
+    <string name="backup_created_message">Резервная копия успешно создана.</string>
+    <string name="ok">OK</string>
+
+</resources>
