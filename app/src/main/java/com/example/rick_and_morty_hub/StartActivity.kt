@@ -134,11 +134,13 @@ fun StartScreen(
     onContentClick: () -> Unit,
     onLoginClick: (String, String) -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     var login by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     var loginError by remember { mutableStateOf(false) }
     var passwordError by remember { mutableStateOf(false) }
+    var credentialsError by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -169,6 +171,7 @@ fun StartScreen(
             onValueChange = {
                 login = it
                 loginError = false
+                credentialsError = false
             },
             modifier = Modifier.fillMaxWidth(),
             label = {
@@ -176,7 +179,7 @@ fun StartScreen(
                     text = stringResource(R.string.login)
                 )
             },
-            isError = loginError,
+            isError = loginError || credentialsError,
             supportingText = if (loginError) {
                 {
                     Text(
@@ -195,6 +198,7 @@ fun StartScreen(
             onValueChange = {
                 password = it
                 passwordError = false
+                credentialsError = false
             },
             modifier = Modifier.fillMaxWidth(),
             label = {
@@ -203,11 +207,17 @@ fun StartScreen(
                 )
             },
             visualTransformation = PasswordVisualTransformation(),
-            isError = passwordError,
+            isError = passwordError || credentialsError,
             supportingText = if (passwordError) {
                 {
                     Text(
                         stringResource(R.string.password_required)
+                    )
+                }
+            } else if (credentialsError) {
+                {
+                    Text(
+                        stringResource(R.string.invalid_credentials)
                     )
                 }
             } else {
@@ -223,7 +233,15 @@ fun StartScreen(
                 passwordError = password.isBlank()
 
                 if (!loginError && !passwordError) {
-                    onLoginClick(login, password)
+                    if (AuthManager.isRegistered(context)) {
+                        if (AuthManager.validateLogin(context, login, password)) {
+                            onLoginClick(login, password)
+                        } else {
+                            credentialsError = true
+                        }
+                    } else {
+                        onLoginClick(login, password)
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth()

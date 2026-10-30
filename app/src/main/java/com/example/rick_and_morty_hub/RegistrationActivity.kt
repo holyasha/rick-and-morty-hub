@@ -97,6 +97,7 @@ class RegistrationActivity : ComponentActivity() {
 fun RegistrationScreen(
     onRegister: (String) -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var login by remember { mutableStateOf("") }
@@ -263,6 +264,7 @@ fun RegistrationScreen(
                     !passwordError &&
                     !confirmPasswordError
                 ) {
+                    AuthManager.saveUser(context, login, password, firstName, lastName, email)
                     onRegister(login)
                 }
             },

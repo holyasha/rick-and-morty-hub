@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,22 +20,24 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.rick_and_morty_hub.data.Character
+import com.example.rick_and_morty_hub.data.CharacterRepository
 import com.example.rick_and_morty_hub.ui.theme.RickAndMortyTheme
-
-data class Character(
-    val id: Int,
-    val name: String,
-    val status: String,
-    val species: String,
-    val gender: String,
-    val origin: String
-)
+import kotlinx.coroutines.launch
 
 // Преобразовано в фрагмент для Лабораторной работы 2
 // Навигация теперь управляется через MainActivity и Navigation Component
@@ -143,6 +146,43 @@ fun ContentScreen(
     characters: List<Character>,
     onSettingsClick: () -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var charactersList by remember { mutableStateOf<List<Character>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var currentPage by remember { mutableStateOf(1) }
+    var hasNextPage by remember { mutableStateOf(true) }
+    var isLoadingMore by remember { mutableStateOf(false) }
+
+    val repository = remember { CharacterRepository() }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        scope.launch {
+            isLoading = true
+            val cached = BackupManager.restoreBackup(context)
+            if (cached != null) {
+                charactersList = cached
+                isLoading = false
+            }
+
+            repository.getCharacters(1).fold(
+                onSuccess = { response ->
+                    charactersList = response.results
+                    hasNextPage = response.info.next != null
+                    isLoading = false
+                    BackupManager.createBackup(context, charactersList)
+                },
+                onFailure = { error ->
+                    if (cached == null) {
+                        errorMessage = error.message ?: "Unknown error"
+                    }
+                    isLoading = false
+                }
+            )
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -185,16 +225,68 @@ fun ContentScreen(
             modifier = Modifier.height(16.dp)
         )
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(characters) { character ->
+        when {
+            isLoading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+            errorMessage != null -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Error: $errorMessage",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+            else -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(charactersList) { character ->
+                        CharacterCard(character)
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
 
-                CharacterCard(character)
-
-                Spacer(
-                    modifier = Modifier.height(8.dp)
-                )
+                    if (hasNextPage) {
+                        item {
+                            Button(
+                                onClick = {
+                                    scope.launch {
+                                        isLoadingMore = true
+                                        repository.getCharacters(currentPage + 1).fold(
+                                            onSuccess = { response ->
+                                                charactersList = charactersList + response.results
+                                                currentPage++
+                                                hasNextPage = response.info.next != null
+                                                isLoadingMore = false
+                                                BackupManager.createBackup(context, charactersList)
+                                            },
+                                            onFailure = { error ->
+                                                errorMessage = error.message
+                                                isLoadingMore = false
+                                            }
+                                        )
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = !isLoadingMore
+                            ) {
+                                if (isLoadingMore) {
+                                    CircularProgressIndicator()
+                                } else {
+                                    Text(androidx.compose.ui.res.stringResource(R.string.load_more))
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -247,7 +339,7 @@ fun CharacterCard(character: Character) {
             Text(
                 text = androidx.compose.ui.res.stringResource(
                     R.string.character_origin,
-                    character.origin
+                    character.origin.name
                 ),
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -263,24 +355,7 @@ fun ContentScreenPreview() {
         darkTheme = true
     ) {
         ContentScreen(
-            characters = listOf(
-                Character(
-                    1,
-                    "Rick Sanchez",
-                    "Alive",
-                    "Human",
-                    "Male",
-                    "Earth"
-                ),
-                Character(
-                    2,
-                    "Morty Smith",
-                    "Alive",
-                    "Human",
-                    "Male",
-                    "Earth"
-                )
-            ),
+            characters = emptyList(),
             onSettingsClick = {}
         )
     }

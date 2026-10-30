@@ -62,4 +62,7 @@
     <string name="backup_created_message">Backup successfully created.</string>
     <string name="ok">OK</string>
 
+    <string name="load_more">Load more</string>
+    <string name="invalid_credentials">Invalid login or password</string>
+
 </resources>

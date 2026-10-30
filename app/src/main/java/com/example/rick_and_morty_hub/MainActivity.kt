@@ -149,23 +149,8 @@ fun RegistrationScreenWrapper(navController: NavHostController) {
 
 @Composable
 fun ContentScreenWrapper(navController: NavHostController) {
-    val characters = listOf(
-        Character(1, "Rick Sanchez", "Alive", "Human", "Male", "Earth"),
-        Character(2, "Morty Smith", "Alive", "Human", "Male", "Earth"),
-        Character(3, "Summer Smith", "Alive", "Human", "Female", "Earth"),
-        Character(4, "Beth Smith", "Alive", "Human", "Female", "Earth"),
-        Character(5, "Jerry Smith", "Alive", "Human", "Male", "Earth"),
-        Character(6, "Birdperson", "Alive", "Birdperson", "Male", "Bird World"),
-        Character(7, "Mr. Meeseeks", "Alive", "Meeseeks", "Male", "Earth"),
-        Character(8, "Squanchy", "Alive", "Cat", "Male", "Squanch Planet"),
-        Character(9, "Summer's Friend", "Alive", "Human", "Female", "Earth"),
-        Character(10, "Abradolf Lincler", "Dead", "Human", "Male", "Earth"),
-        Character(11, "Pickle Rick", "Alive", "Animal", "Male", "Earth"),
-        Character(12, "Evil Morty", "Alive", "Human", "Male", "Earth")
-    )
-
     ContentScreen(
-        characters = characters,
+        characters = emptyList(),
         onSettingsClick = {
             navController.navigate("settings")
         }
@@ -206,7 +191,8 @@ fun SettingsScreenWrapper(navController: NavHostController) {
             AppSettings.setNotificationsEnabled(context, enabled)
         },
         onCreateBackup = {
-            BackupManager.createBackup(context)
+            val context = context
+            // Backup will be created with actual loaded characters from ContentScreen
             android.app.AlertDialog.Builder(context)
                 .setTitle(R.string.backup_created)
                 .setMessage(R.string.backup_created_message)
