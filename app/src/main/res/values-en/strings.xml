@@ -38,6 +38,9 @@
     <string name="english">English</string>
 
     <string name="notifications">Notifications</string>
+    <string name="local_preferences">Additional settings</string>
+    <string name="show_character_origin">Show character origin</string>
+    <string name="internal_backup_exists">External file removed; internal backup is available</string>
 
     <string name="backup">Backup</string>
     <string name="create_backup">Create backup</string>
@@ -51,7 +54,7 @@
     <string name="local_cache_cleared">Local cache cleared. The backup file was not deleted.</string>
 
     <string name="restore_backup_question">Restore data from backup?</string>
-    <string name="delete_backup_question">Delete backup?</string>
+    <string name="delete_backup_question">Delete the file from Downloads? The app will save an internal copy before deletion.</string>
 
     <string name="restore">Restore</string>
     <string name="delete">Delete</string>

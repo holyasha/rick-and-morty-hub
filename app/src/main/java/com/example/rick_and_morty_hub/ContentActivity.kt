@@ -18,6 +18,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +40,7 @@ import kotlinx.coroutines.launch
 fun ContentScreen(onSettingsClick: () -> Unit) {
     val context = LocalContext.current
     val repository = remember(context) { CharacterRepository(context) }
+    val userPreferences by UserPreferencesStore.preferences(context).collectAsState(initial = UserPreferences())
     val scope = rememberCoroutineScope()
     var characters by remember { mutableStateOf<List<Character>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
@@ -137,7 +139,7 @@ fun ContentScreen(onSettingsClick: () -> Unit) {
         }
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(characters, key = { it.id }) { character ->
-                CharacterCard(character)
+                CharacterCard(character, showOrigin = userPreferences.showCharacterOrigin)
                 Spacer(Modifier.height(8.dp))
             }
             if (hasNext && characters.isNotEmpty()) {
@@ -156,7 +158,7 @@ fun ContentScreen(onSettingsClick: () -> Unit) {
 }
 
 @Composable
-fun CharacterCard(character: Character) {
+fun CharacterCard(character: Character, showOrigin: Boolean = true) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -168,7 +170,9 @@ fun CharacterCard(character: Character) {
             Text(androidx.compose.ui.res.stringResource(R.string.character_status, character.status))
             Text(androidx.compose.ui.res.stringResource(R.string.character_species, character.species))
             Text(androidx.compose.ui.res.stringResource(R.string.character_gender, character.gender))
-            Text(androidx.compose.ui.res.stringResource(R.string.character_origin, character.origin))
+            if (showOrigin) {
+                Text(androidx.compose.ui.res.stringResource(R.string.character_origin, character.origin))
+            }
         }
     }
 }

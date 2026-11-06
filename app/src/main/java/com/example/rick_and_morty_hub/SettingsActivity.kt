@@ -185,252 +185,158 @@ fun SettingsScreen(
     initialFontScale: Float,
     initialLanguage: String,
     initialNotifications: Boolean,
-    initialBackupExists: Boolean,
+    initialShowOrigin: Boolean,
+    initialExternalBackupExists: Boolean,
+    initialInternalBackupExists: Boolean,
+    backupInfo: String,
     onDarkThemeChanged: (Boolean) -> Unit,
     onFontScaleChanged: (Float) -> Unit,
     onLanguageChanged: (String) -> Unit,
     onNotificationsChanged: (Boolean) -> Unit,
+    onShowOriginChanged: (Boolean) -> Unit,
     onCreateBackup: () -> Unit,
     onRestoreBackup: () -> Unit,
     onDeleteBackup: () -> Unit,
     onClearCache: () -> Unit
 ) {
-    var darkTheme by remember(initialDarkTheme) {
-        mutableStateOf(initialDarkTheme)
-    }
-
-    var fontScale by remember(initialFontScale) {
-        mutableFloatStateOf(initialFontScale)
-    }
-
-    var language by remember(initialLanguage) {
-        mutableStateOf(initialLanguage)
-    }
-
-    var notifications by remember(initialNotifications) {
-        mutableStateOf(initialNotifications)
-    }
+    var darkTheme by remember(initialDarkTheme) { mutableStateOf(initialDarkTheme) }
+    var fontScale by remember(initialFontScale) { mutableFloatStateOf(initialFontScale) }
+    var language by remember(initialLanguage) { mutableStateOf(initialLanguage) }
+    var notifications by remember(initialNotifications) { mutableStateOf(initialNotifications) }
+    var showOrigin by remember(initialShowOrigin) { mutableStateOf(initialShowOrigin) }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = Modifier.fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
-            .padding(
-                start = 20.dp,
-                end = 20.dp,
-                top = 24.dp,
-                bottom = 32.dp
-            )
+            .padding(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 32.dp)
     ) {
-
         Text(
-            text = androidx.compose.ui.res.stringResource(
-                R.string.settings_title
-            ),
+            text = androidx.compose.ui.res.stringResource(R.string.settings_title),
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.onBackground
         )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
+        Spacer(Modifier.height(24.dp))
         Text(
-            text = androidx.compose.ui.res.stringResource(
-                R.string.appearance
-            ),
+            text = androidx.compose.ui.res.stringResource(R.string.appearance),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onBackground
         )
-
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(Modifier.height(12.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = androidx.compose.ui.res.stringResource(
-                    R.string.dark_theme
-                ),
-                color = MaterialTheme.colorScheme.onBackground
-            )
-
-            Switch(
-                checked = darkTheme,
-                onCheckedChange = {
-                    darkTheme = it
-                    onDarkThemeChanged(it)
-                }
-            )
+            Text(androidx.compose.ui.res.stringResource(R.string.dark_theme), color = MaterialTheme.colorScheme.onBackground)
+            Switch(checked = darkTheme, onCheckedChange = {
+                darkTheme = it
+                onDarkThemeChanged(it)
+            })
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
+        Spacer(Modifier.height(16.dp))
+        Text(androidx.compose.ui.res.stringResource(R.string.font_size), color = MaterialTheme.colorScheme.onBackground)
+        Slider(value = fontScale, onValueChange = {
+            fontScale = it
+            onFontScaleChanged(it)
+        }, valueRange = 0.8f..1.3f)
         Text(
-            text = androidx.compose.ui.res.stringResource(
-                R.string.font_size
-            ),
+            androidx.compose.ui.res.stringResource(R.string.font_size_value, "${(fontScale * 100).toInt()}%"),
             color = MaterialTheme.colorScheme.onBackground
         )
 
-        Slider(
-            value = fontScale,
-            onValueChange = {
-                fontScale = it
-                onFontScaleChanged(it)
-            },
-            valueRange = 0.8f..1.3f
-        )
-
+        Spacer(Modifier.height(24.dp))
         Text(
-            text = androidx.compose.ui.res.stringResource(
-                R.string.font_size_value,
-                "${(fontScale * 100).toInt()}%"
-            ),
-            color = MaterialTheme.colorScheme.onBackground
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = androidx.compose.ui.res.stringResource(
-                R.string.language
-            ),
+            text = androidx.compose.ui.res.stringResource(R.string.language),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onBackground
         )
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            RadioButton(
-                selected = language == "Русский",
-                onClick = {
-                    language = "Русский"
-                    onLanguageChanged("Русский")
-                }
-            )
-
-            Text(
-                text = androidx.compose.ui.res.stringResource(
-                    R.string.russian
-                ),
-                color = MaterialTheme.colorScheme.onBackground
-            )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            RadioButton(selected = language == "Русский", onClick = {
+                language = "Русский"
+                onLanguageChanged("Русский")
+            })
+            Text(androidx.compose.ui.res.stringResource(R.string.russian), color = MaterialTheme.colorScheme.onBackground)
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            RadioButton(selected = language == "English", onClick = {
+                language = "English"
+                onLanguageChanged("English")
+            })
+            Text(androidx.compose.ui.res.stringResource(R.string.english), color = MaterialTheme.colorScheme.onBackground)
         }
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            RadioButton(
-                selected = language == "English",
-                onClick = {
-                    language = "English"
-                    onLanguageChanged("English")
-                }
-            )
-
-            Text(
-                text = androidx.compose.ui.res.stringResource(
-                    R.string.english
-                ),
-                color = MaterialTheme.colorScheme.onBackground
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
+        Spacer(Modifier.height(24.dp))
+        Text(
+            text = androidx.compose.ui.res.stringResource(R.string.local_preferences),
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onBackground
+        )
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = androidx.compose.ui.res.stringResource(
-                    R.string.notifications
-                ),
-                color = MaterialTheme.colorScheme.onBackground
-            )
-
-            Switch(
-                checked = notifications,
-                onCheckedChange = {
-                    notifications = it
-                    onNotificationsChanged(it)
-                }
-            )
+            Text(androidx.compose.ui.res.stringResource(R.string.notifications), color = MaterialTheme.colorScheme.onBackground)
+            Switch(checked = notifications, onCheckedChange = {
+                notifications = it
+                onNotificationsChanged(it)
+            })
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(androidx.compose.ui.res.stringResource(R.string.show_character_origin), color = MaterialTheme.colorScheme.onBackground)
+            Switch(checked = showOrigin, onCheckedChange = {
+                showOrigin = it
+                onShowOriginChanged(it)
+            })
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
+        Spacer(Modifier.height(24.dp))
         Text(
-            text = androidx.compose.ui.res.stringResource(
-                R.string.backup
-            ),
+            text = androidx.compose.ui.res.stringResource(R.string.backup),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onBackground
         )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Button(
-            onClick = onCreateBackup,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(
-                text = androidx.compose.ui.res.stringResource(
-                    R.string.create_backup
-                )
-            )
+        Spacer(Modifier.height(8.dp))
+        Text(backupInfo, color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.bodySmall)
+        Spacer(Modifier.height(12.dp))
+        Button(onClick = onCreateBackup, modifier = Modifier.fillMaxWidth()) {
+            Text(androidx.compose.ui.res.stringResource(R.string.create_backup))
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
+        Spacer(Modifier.height(8.dp))
         Button(
             onClick = onRestoreBackup,
+            enabled = initialInternalBackupExists,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
-                text = androidx.compose.ui.res.stringResource(
-                    R.string.restore_backup
-                )
-            )
+            Text(androidx.compose.ui.res.stringResource(R.string.restore_backup))
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
+        Spacer(Modifier.height(8.dp))
         Button(
             onClick = onDeleteBackup,
+            enabled = initialExternalBackupExists,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
-                text = androidx.compose.ui.res.stringResource(
-                    R.string.delete_backup
-                )
-            )
+            Text(androidx.compose.ui.res.stringResource(R.string.delete_backup))
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Button(
-            onClick = onClearCache,
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        Spacer(Modifier.height(8.dp))
+        Button(onClick = onClearCache, modifier = Modifier.fillMaxWidth()) {
             Text(androidx.compose.ui.res.stringResource(R.string.clear_local_cache))
         }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
+        Spacer(Modifier.height(8.dp))
         Text(
-            text = if (initialBackupExists) {
-                androidx.compose.ui.res.stringResource(
-                    R.string.backup_exists
-                )
+            text = if (initialExternalBackupExists) {
+                androidx.compose.ui.res.stringResource(R.string.backup_exists)
+            } else if (initialInternalBackupExists) {
+                androidx.compose.ui.res.stringResource(R.string.internal_backup_exists)
             } else {
-                androidx.compose.ui.res.stringResource(
-                    R.string.backup_not_exists
-                )
+                androidx.compose.ui.res.stringResource(R.string.backup_not_exists)
             },
             color = MaterialTheme.colorScheme.onBackground
         )
@@ -440,19 +346,21 @@ fun SettingsScreen(
 @Preview(showBackground = true)
 @Composable
 fun SettingsScreenPreview() {
-    RickAndMortyTheme(
-        darkTheme = true
-    ) {
+    RickAndMortyTheme(darkTheme = true) {
         SettingsScreen(
             initialDarkTheme = true,
             initialFontScale = 1.0f,
             initialLanguage = "Русский",
             initialNotifications = true,
-            initialBackupExists = true,
+            initialShowOrigin = true,
+            initialExternalBackupExists = true,
+            initialInternalBackupExists = false,
+            backupInfo = "Файл: RickAndMortyHub_characters.txt",
             onDarkThemeChanged = {},
             onFontScaleChanged = {},
             onLanguageChanged = {},
             onNotificationsChanged = {},
+            onShowOriginChanged = {},
             onCreateBackup = {},
             onRestoreBackup = {},
             onDeleteBackup = {},

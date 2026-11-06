@@ -1,15 +1,24 @@
 package com.example.rick_and_morty_hub
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.DisposableEffect
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -159,13 +168,49 @@ fun ContentScreenWrapper(navController: NavHostController) {
 @Composable
 fun SettingsScreenWrapper(navController: NavHostController) {
     val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = rememberCoroutineScope()
+    val userPreferences by UserPreferencesStore.preferences(context).collectAsState(
+        initial = UserPreferences()
+    )
 
     val darkTheme = AppSettings.isDarkTheme(context)
     val fontScale = AppSettings.getFontScale(context)
     val language = AppSettings.getLanguage(context)
-    val notifications = AppSettings.isNotificationsEnabled(context)
-    var backupExists by remember {
-        mutableStateOf(BackupManager.backupExists(context))
+    val backupState = remember { mutableStateOf(BackupManager.getInfo(context)) }
+    var pendingStorageAction by remember { mutableStateOf<(() -> Unit)?>(null) }
+    val storagePermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val granted = permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE] == true
+        val action = pendingStorageAction
+        pendingStorageAction = null
+        if (granted) {
+            action?.invoke()
+        } else {
+            android.app.AlertDialog.Builder(context)
+                .setTitle("Нет разрешения")
+                .setMessage("Для работы с общей папкой Downloads на Android 9 и ниже необходимо разрешение на чтение и запись файлов.")
+                .setPositiveButton(R.string.ok, null)
+                .show()
+        }
+    }
+
+    fun withStoragePermission(action: () -> Unit) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+        ) {
+            pendingStorageAction = action
+            storagePermissionLauncher.launch(arrayOf(
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ))
+        } else {
+            action()
+        }
+    }
+
+    fun refreshBackupState() {
+        backupState.value = BackupManager.getInfo(context)
     }
 
     fun showBackupResult(title: String, result: BackupManager.OperationResult) {
@@ -180,8 +225,11 @@ fun SettingsScreenWrapper(navController: NavHostController) {
         initialDarkTheme = darkTheme,
         initialFontScale = fontScale,
         initialLanguage = language,
-        initialNotifications = notifications,
-        initialBackupExists = backupExists,
+        initialNotifications = userPreferences.notificationsEnabled,
+        initialShowOrigin = userPreferences.showCharacterOrigin,
+        initialExternalBackupExists = backupState.value.externalExists,
+        initialInternalBackupExists = backupState.value.internalExists,
+        backupInfo = backupState.value.description,
         onDarkThemeChanged = { enabled ->
             AppSettings.setDarkTheme(context, enabled)
             (context as? ComponentActivity)?.recreate()
@@ -197,30 +245,38 @@ fun SettingsScreenWrapper(navController: NavHostController) {
             }
         },
         onNotificationsChanged = { enabled ->
-            AppSettings.setNotificationsEnabled(context, enabled)
+            scope.launch { UserPreferencesStore.setNotificationsEnabled(context, enabled) }
+        },
+        onShowOriginChanged = { enabled ->
+            scope.launch { UserPreferencesStore.setShowCharacterOrigin(context, enabled) }
         },
         onCreateBackup = {
-            val result = BackupManager.createBackup(context)
-            backupExists = BackupManager.backupExists(context)
-            showBackupResult(
-                if (result.success) "Резервная копия создана" else "Ошибка создания копии",
-                result
-            )
+            withStoragePermission {
+                val result = BackupManager.createBackup(context)
+                refreshBackupState()
+                showBackupResult(
+                    if (result.success) "Файл создан" else "Ошибка создания файла",
+                    result
+                )
+            }
         },
         onRestoreBackup = {
             android.app.AlertDialog.Builder(context)
                 .setTitle(R.string.restore_backup)
                 .setMessage(R.string.restore_backup_question)
                 .setPositiveButton(R.string.restore) { _, _ ->
-                    val result = BackupManager.restoreBackup(context)
-                    showBackupResult(
-                        if (result.success) "Восстановление завершено" else "Ошибка восстановления",
-                        result
-                    )
-                    if (result.success) {
-                        navController.navigate("content") {
-                            popUpTo("content") { inclusive = true }
-                            launchSingleTop = true
+                    withStoragePermission {
+                        val result = BackupManager.restoreBackup(context)
+                        refreshBackupState()
+                        showBackupResult(
+                            if (result.success) "Восстановление завершено" else "Ошибка восстановления",
+                            result
+                        )
+                        if (result.success) {
+                            navController.navigate("content") {
+                                popUpTo("content") { inclusive = true }
+                                launchSingleTop = true
+                            }
                         }
                     }
                 }
@@ -232,12 +288,14 @@ fun SettingsScreenWrapper(navController: NavHostController) {
                 .setTitle(R.string.delete_backup)
                 .setMessage(R.string.delete_backup_question)
                 .setPositiveButton(R.string.delete) { _, _ ->
-                    val result = BackupManager.deleteBackup(context)
-                    backupExists = BackupManager.backupExists(context)
-                    showBackupResult(
-                        if (result.success) "Резервная копия удалена" else "Ошибка удаления",
-                        result
-                    )
+                    withStoragePermission {
+                        val result = BackupManager.deleteBackup(context)
+                        refreshBackupState()
+                        showBackupResult(
+                            if (result.success) "Файл удалён" else "Ошибка удаления",
+                            result
+                        )
+                    }
                 }
                 .setNegativeButton(R.string.cancel, null)
                 .show()

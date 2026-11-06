@@ -9,7 +9,6 @@ object AppSettings {
     private const val KEY_DARK_THEME = "dark_theme"
     private const val KEY_FONT_SCALE = "font_scale"
     private const val KEY_LANGUAGE = "language"
-    private const val KEY_NOTIFICATIONS = "notifications"
 
     private fun preferences(context: Context) =
         context.getSharedPreferences(
@@ -63,18 +62,7 @@ object AppSettings {
             .apply()
     }
 
-    fun isNotificationsEnabled(context: Context): Boolean {
-        return preferences(context)
-            .getBoolean(KEY_NOTIFICATIONS, true)
-    }
 
-    fun setNotificationsEnabled(
-        context: Context,
-        enabled: Boolean
-    ) {
-        preferences(context)
-            .edit()
-            .putBoolean(KEY_NOTIFICATIONS, enabled)
-            .apply()
-    }
+
+
 }
