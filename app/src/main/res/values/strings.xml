@@ -46,6 +46,9 @@
 
     <string name="backup_exists">Резервная копия существует</string>
     <string name="backup_not_exists">Резервной копии нет</string>
+    <string name="clear_local_cache">Очистить локальный кэш</string>
+    <string name="clear_local_cache_question">Удалить загруженных персонажей из локального кэша? Файл резервной копии останется нетронутым.</string>
+    <string name="local_cache_cleared">Локальный кэш очищен. Резервная копия не удалена.</string>
 
     <string name="restore_backup_question">Восстановить данные из резервной копии?</string>
     <string name="delete_backup_question">Удалить резервную копию?</string>

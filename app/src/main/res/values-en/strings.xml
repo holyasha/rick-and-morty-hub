@@ -46,6 +46,9 @@
 
     <string name="backup_exists">Backup exists</string>
     <string name="backup_not_exists">No backup</string>
+    <string name="clear_local_cache">Clear local cache</string>
+    <string name="clear_local_cache_question">Delete downloaded characters from the local cache? The backup file will remain unchanged.</string>
+    <string name="local_cache_cleared">Local cache cleared. The backup file was not deleted.</string>
 
     <string name="restore_backup_question">Restore data from backup?</string>
     <string name="delete_backup_question">Delete backup?</string>

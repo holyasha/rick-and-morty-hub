@@ -192,7 +192,8 @@ fun SettingsScreen(
     onNotificationsChanged: (Boolean) -> Unit,
     onCreateBackup: () -> Unit,
     onRestoreBackup: () -> Unit,
-    onDeleteBackup: () -> Unit
+    onDeleteBackup: () -> Unit,
+    onClearCache: () -> Unit
 ) {
     var darkTheme by remember(initialDarkTheme) {
         mutableStateOf(initialDarkTheme)
@@ -410,6 +411,15 @@ fun SettingsScreen(
             )
         }
 
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Button(
+            onClick = onClearCache,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(androidx.compose.ui.res.stringResource(R.string.clear_local_cache))
+        }
+
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
@@ -445,7 +455,8 @@ fun SettingsScreenPreview() {
             onNotificationsChanged = {},
             onCreateBackup = {},
             onRestoreBackup = {},
-            onDeleteBackup = {}
+            onDeleteBackup = {},
+            onClearCache = {}
         )
     }
 }

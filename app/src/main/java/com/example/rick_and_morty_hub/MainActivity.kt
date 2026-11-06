@@ -6,6 +6,10 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.DisposableEffect
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -149,27 +153,7 @@ fun RegistrationScreenWrapper(navController: NavHostController) {
 
 @Composable
 fun ContentScreenWrapper(navController: NavHostController) {
-    val characters = listOf(
-        Character(1, "Rick Sanchez", "Alive", "Human", "Male", "Earth"),
-        Character(2, "Morty Smith", "Alive", "Human", "Male", "Earth"),
-        Character(3, "Summer Smith", "Alive", "Human", "Female", "Earth"),
-        Character(4, "Beth Smith", "Alive", "Human", "Female", "Earth"),
-        Character(5, "Jerry Smith", "Alive", "Human", "Male", "Earth"),
-        Character(6, "Birdperson", "Alive", "Birdperson", "Male", "Bird World"),
-        Character(7, "Mr. Meeseeks", "Alive", "Meeseeks", "Male", "Earth"),
-        Character(8, "Squanchy", "Alive", "Cat", "Male", "Squanch Planet"),
-        Character(9, "Summer's Friend", "Alive", "Human", "Female", "Earth"),
-        Character(10, "Abradolf Lincler", "Dead", "Human", "Male", "Earth"),
-        Character(11, "Pickle Rick", "Alive", "Animal", "Male", "Earth"),
-        Character(12, "Evil Morty", "Alive", "Human", "Male", "Earth")
-    )
-
-    ContentScreen(
-        characters = characters,
-        onSettingsClick = {
-            navController.navigate("settings")
-        }
-    )
+    ContentScreen(onSettingsClick = { navController.navigate("settings") })
 }
 
 @Composable
@@ -180,7 +164,17 @@ fun SettingsScreenWrapper(navController: NavHostController) {
     val fontScale = AppSettings.getFontScale(context)
     val language = AppSettings.getLanguage(context)
     val notifications = AppSettings.isNotificationsEnabled(context)
-    val backupExists = BackupManager.backupExists(context)
+    var backupExists by remember {
+        mutableStateOf(BackupManager.backupExists(context))
+    }
+
+    fun showBackupResult(title: String, result: BackupManager.OperationResult) {
+        android.app.AlertDialog.Builder(context)
+            .setTitle(title)
+            .setMessage(result.message)
+            .setPositiveButton(R.string.ok, null)
+            .show()
+    }
 
     SettingsScreen(
         initialDarkTheme = darkTheme,
@@ -206,20 +200,29 @@ fun SettingsScreenWrapper(navController: NavHostController) {
             AppSettings.setNotificationsEnabled(context, enabled)
         },
         onCreateBackup = {
-            BackupManager.createBackup(context)
-            android.app.AlertDialog.Builder(context)
-                .setTitle(R.string.backup_created)
-                .setMessage(R.string.backup_created_message)
-                .setPositiveButton(R.string.ok, null)
-                .show()
+            val result = BackupManager.createBackup(context)
+            backupExists = BackupManager.backupExists(context)
+            showBackupResult(
+                if (result.success) "Резервная копия создана" else "Ошибка создания копии",
+                result
+            )
         },
         onRestoreBackup = {
             android.app.AlertDialog.Builder(context)
                 .setTitle(R.string.restore_backup)
                 .setMessage(R.string.restore_backup_question)
                 .setPositiveButton(R.string.restore) { _, _ ->
-                    BackupManager.restoreBackup(context)
-                    (context as? ComponentActivity)?.recreate()
+                    val result = BackupManager.restoreBackup(context)
+                    showBackupResult(
+                        if (result.success) "Восстановление завершено" else "Ошибка восстановления",
+                        result
+                    )
+                    if (result.success) {
+                        navController.navigate("content") {
+                            popUpTo("content") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
                 }
                 .setNegativeButton(R.string.cancel, null)
                 .show()
@@ -229,8 +232,31 @@ fun SettingsScreenWrapper(navController: NavHostController) {
                 .setTitle(R.string.delete_backup)
                 .setMessage(R.string.delete_backup_question)
                 .setPositiveButton(R.string.delete) { _, _ ->
-                    BackupManager.deleteBackup(context)
-                    (context as? ComponentActivity)?.recreate()
+                    val result = BackupManager.deleteBackup(context)
+                    backupExists = BackupManager.backupExists(context)
+                    showBackupResult(
+                        if (result.success) "Резервная копия удалена" else "Ошибка удаления",
+                        result
+                    )
+                }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+        },
+        onClearCache = {
+            android.app.AlertDialog.Builder(context)
+                .setTitle(R.string.clear_local_cache)
+                .setMessage(R.string.clear_local_cache_question)
+                .setPositiveButton(R.string.delete) { _, _ ->
+                    com.example.rick_and_morty_hub.data.CharacterRepository(context).clearCache()
+                    android.app.AlertDialog.Builder(context)
+                        .setTitle(R.string.ok)
+                        .setMessage(R.string.local_cache_cleared)
+                        .setPositiveButton(R.string.ok, null)
+                        .show()
+                    navController.navigate("content") {
+                        popUpTo("content") { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
                 .setNegativeButton(R.string.cancel, null)
                 .show()
