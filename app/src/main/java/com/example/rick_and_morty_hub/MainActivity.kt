@@ -14,6 +14,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.rick_and_morty_hub.ui.theme.RickAndMortyTheme
 
 class MainActivity : ComponentActivity() {
@@ -66,19 +67,20 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainNavigation() {
     val navController = rememberNavController()
+    val authViewModel: AuthViewModel = viewModel()
 
     NavHost(
         navController = navController,
-        startDestination = "start"
+        startDestination = "login"
     ) {
-        composable("start") {
-            LifecycleLogger("StartScreen")
-            StartScreenWrapper(navController)
+        composable("login") {
+            LifecycleLogger("LoginScreen")
+            StartScreenWrapper(navController, authViewModel)
         }
 
         composable("registration") {
             LifecycleLogger("RegistrationScreen")
-            RegistrationScreenWrapper(navController)
+            RegistrationScreenWrapper(navController, authViewModel)
         }
 
         composable("content") {
@@ -119,30 +121,42 @@ fun LifecycleLogger(screenName: String) {
 }
 
 @Composable
-fun StartScreenWrapper(navController: NavHostController) {
+fun StartScreenWrapper(
+    navController: NavHostController,
+    authViewModel: AuthViewModel
+) {
     StartScreen(
+        registeredLogin = authViewModel.registeredLogin,
+        loginError = authViewModel.loginError,
+        onCredentialsChanged = authViewModel::clearLoginError,
         onRegistrationClick = {
             navController.navigate("registration")
         },
-        onContentClick = {
-            navController.navigate("content") {
-                popUpTo("start") { inclusive = true }
-            }
-        },
-        onLoginClick = { _, _ ->
-            navController.navigate("content") {
-                popUpTo("start") { inclusive = true }
+        onLoginClick = { login, password ->
+            if (authViewModel.authenticate(login, password)) {
+                navController.navigate("content") {
+                    popUpTo("login") { inclusive = true }
+                    launchSingleTop = true
+                }
             }
         }
     )
 }
 
 @Composable
-fun RegistrationScreenWrapper(navController: NavHostController) {
+fun RegistrationScreenWrapper(
+    navController: NavHostController,
+    authViewModel: AuthViewModel
+) {
     RegistrationScreen(
-        onRegister = { login ->
-            Log.d("MainActivity", "Получен зарегистрированный логин: $login")
-            navController.popBackStack()
+        onRegister = { user ->
+            authViewModel.register(user)
+            // Возвращаемся на уже существующий экран входа.
+            // Он получает логин из общего AuthViewModel.
+            navController.popBackStack("login", inclusive = false)
+        },
+        onBackToLogin = {
+            navController.popBackStack("login", inclusive = false)
         }
     )
 }

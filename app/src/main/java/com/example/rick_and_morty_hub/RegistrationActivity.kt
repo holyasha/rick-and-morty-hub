@@ -20,6 +20,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -95,7 +96,8 @@ class RegistrationActivity : ComponentActivity() {
 
 @Composable
 fun RegistrationScreen(
-    onRegister: (String) -> Unit
+    onRegister: (RegisteredUser) -> Unit,
+    onBackToLogin: () -> Unit
 ) {
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
@@ -263,7 +265,15 @@ fun RegistrationScreen(
                     !passwordError &&
                     !confirmPasswordError
                 ) {
-                    onRegister(login)
+                    onRegister(
+                        RegisteredUser(
+                            firstName = firstName,
+                            lastName = lastName,
+                            login = login,
+                            email = email,
+                            password = password
+                        )
+                    )
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -271,6 +281,15 @@ fun RegistrationScreen(
             Text(
                 stringResource(R.string.register_button)
             )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        TextButton(
+            onClick = onBackToLogin,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(stringResource(R.string.back_to_login))
         }
     }
 }
@@ -282,7 +301,8 @@ fun RegistrationScreenPreview() {
         darkTheme = true
     ) {
         RegistrationScreen(
-            onRegister = {}
+            onRegister = {},
+            onBackToLogin = {}
         )
     }
 }

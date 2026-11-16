@@ -63,4 +63,4 @@
     <string name="backup_created_message">Резервная копия успешно создана.</string>
     <string name="ok">OK</string>
 
-</resources>
+    <string name="account_not_registered">Сначала зарегистрируйте аккаунт</string>\n    <string name="invalid_credentials">Неверный логин или пароль</string>\n    <string name="back_to_login">Вернуться ко входу</string>\n\n</resources>
