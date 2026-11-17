@@ -1,5 +1,7 @@
 package com.example.rick_and_morty_hub
 
+import com.example.rick_and_morty_hub.data.model.Character
+
 import android.content.Context
 import com.example.rick_and_morty_hub.data.CharacterRepository
 import org.json.JSONArray

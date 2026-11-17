@@ -1,12 +1,6 @@
 package com.example.rick_and_morty_hub
 
-import android.content.Context
-import android.content.Intent
-import android.os.Bundle
-import android.util.Log
 import android.util.Patterns
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,73 +23,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.rick_and_morty_hub.ui.theme.RickAndMortyTheme
 
-// Преобразовано в фрагмент для Лабораторной работы 2
-// Навигация теперь управляется через MainActivity и Navigation Component
-/*
-class RegistrationActivity : ComponentActivity() {
-
-    override fun attachBaseContext(newBase: Context) {
-        val language = AppSettings.getLanguage(newBase)
-
-        super.attachBaseContext(
-            LocaleHelper.applyLanguage(newBase, language)
-        )
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        Log.d("Lifecycle", "RegistrationActivity: onCreate")
-
-        setContent {
-            RickAndMortyTheme(
-                darkTheme = AppSettings.isDarkTheme(this),
-                fontScale = AppSettings.getFontScale(this)
-            ) {
-                RegistrationScreen(
-                    onRegister = { login ->
-                        val resultIntent = Intent().apply {
-                            putExtra("registered_login", login)
-                        }
-
-                        setResult(RESULT_OK, resultIntent)
-                        finish()
-                    }
-                )
-            }
-        }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        Log.d("Lifecycle", "RegistrationActivity: onStart")
-    }
-
-    override fun onResume() {
-        super.onResume()
-        Log.d("Lifecycle", "RegistrationActivity: onResume")
-    }
-
-    override fun onPause() {
-        Log.d("Lifecycle", "RegistrationActivity: onPause")
-        super.onPause()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        Log.d("Lifecycle", "RegistrationActivity: onStop")
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.d("Lifecycle", "RegistrationActivity: onDestroy")
-    }
-}
-*/
-
 @Composable
 fun RegistrationScreen(
-    onRegister: (String) -> Unit
+    onRegister: (RegisteredUser) -> Unit,
+    onBackToLogin: () -> Unit
 ) {
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
@@ -263,7 +194,15 @@ fun RegistrationScreen(
                     !passwordError &&
                     !confirmPasswordError
                 ) {
-                    onRegister(login)
+                    onRegister(
+                        RegisteredUser(
+                            firstName = firstName.trim(),
+                            lastName = lastName.trim(),
+                            login = login.trim(),
+                            email = email.trim(),
+                            password = password
+                        )
+                    )
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -271,6 +210,15 @@ fun RegistrationScreen(
             Text(
                 stringResource(R.string.register_button)
             )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        androidx.compose.material3.TextButton(
+            onClick = onBackToLogin,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(stringResource(R.string.back_to_login))
         }
     }
 }
@@ -282,7 +230,8 @@ fun RegistrationScreenPreview() {
         darkTheme = true
     ) {
         RegistrationScreen(
-            onRegister = {}
+            onRegister = {},
+            onBackToLogin = {}
         )
     }
 }

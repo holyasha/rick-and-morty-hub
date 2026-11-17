@@ -1,11 +1,5 @@
 package com.example.rick_and_morty_hub
 
-import android.content.Context
-import android.os.Bundle
-import android.util.Log
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,119 +20,21 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.rick_and_morty_hub.ui.theme.RickAndMortyTheme
 
-// Преобразовано в фрагмент для Лабораторной работы 2
-// Навигация теперь управляется через MainActivity и Navigation Component
-/*
-class StartActivity : ComponentActivity() {
-
-    private val registrationLauncher =
-        registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-
-            if (result.resultCode == RESULT_OK) {
-                val login = result.data?.getStringExtra("registered_login")
-
-                if (!login.isNullOrBlank()) {
-                    Log.d(
-                        "StartActivity",
-                        "Получен зарегистрированный логин: $login"
-                    )
-                }
-            }
-        }
-
-    override fun attachBaseContext(newBase: Context) {
-        val language = AppSettings.getLanguage(newBase)
-
-        super.attachBaseContext(
-            LocaleHelper.applyLanguage(newBase, language)
-        )
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        Log.d("Lifecycle", "StartActivity: onCreate")
-
-        setContent {
-            RickAndMortyTheme(
-                darkTheme = AppSettings.isDarkTheme(this),
-                fontScale = AppSettings.getFontScale(this)
-            ) {
-                StartScreen(
-                    onRegistrationClick = {
-                        openRegistration()
-                    },
-                    onContentClick = {
-                        openContent()
-                    },
-                    onLoginClick = { _, _ ->
-                        openContent()
-                    }
-                )
-            }
-        }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        Log.d("Lifecycle", "StartActivity: onStart")
-    }
-
-    override fun onResume() {
-        super.onResume()
-        Log.d("Lifecycle", "StartActivity: onResume")
-    }
-
-    override fun onPause() {
-        Log.d("Lifecycle", "StartActivity: onPause")
-        super.onPause()
-    }
-
-    override fun onStop() {
-        Log.d("Lifecycle", "StartActivity: onStop")
-        super.onStop()
-    }
-
-    override fun onDestroy() {
-        Log.d("Lifecycle", "StartActivity: onDestroy")
-        super.onDestroy()
-    }
-
-    private fun openRegistration() {
-        registrationLauncher.launch(
-            android.content.Intent(
-                this,
-                RegistrationActivity::class.java
-            )
-        )
-    }
-
-    private fun openContent() {
-        startActivity(
-            android.content.Intent(
-                this,
-                ContentActivity::class.java
-            )
-        )
-
-        finish()
-    }
-}
-*/
-
 @Composable
 fun StartScreen(
+    registeredLogin: String,
+    loginError: LoginError?,
+    onCredentialsChanged: () -> Unit,
     onRegistrationClick: () -> Unit,
-    onContentClick: () -> Unit,
     onLoginClick: (String, String) -> Unit
 ) {
-    var login by remember { mutableStateOf("") }
+    var login by remember(registeredLogin) {
+        mutableStateOf(registeredLogin)
+    }
     var password by remember { mutableStateOf("") }
 
-    var loginError by remember { mutableStateOf(false) }
-    var passwordError by remember { mutableStateOf(false) }
+    var loginFieldError by remember { mutableStateOf(false) }
+    var passwordFieldError by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -147,7 +43,6 @@ fun StartScreen(
             .padding(24.dp),
         verticalArrangement = Arrangement.Center
     ) {
-
         Text(
             text = "Rick & Morty Hub",
             style = MaterialTheme.typography.headlineLarge,
@@ -168,21 +63,14 @@ fun StartScreen(
             value = login,
             onValueChange = {
                 login = it
-                loginError = false
+                loginFieldError = false
+                onCredentialsChanged()
             },
             modifier = Modifier.fillMaxWidth(),
-            label = {
-                Text(
-                    text = stringResource(R.string.login)
-                )
-            },
-            isError = loginError,
-            supportingText = if (loginError) {
-                {
-                    Text(
-                        stringResource(R.string.login_required)
-                    )
-                }
+            label = { Text(stringResource(R.string.login)) },
+            isError = loginFieldError,
+            supportingText = if (loginFieldError) {
+                { Text(stringResource(R.string.login_required)) }
             } else {
                 null
             }
@@ -194,43 +82,51 @@ fun StartScreen(
             value = password,
             onValueChange = {
                 password = it
-                passwordError = false
+                passwordFieldError = false
+                onCredentialsChanged()
             },
             modifier = Modifier.fillMaxWidth(),
-            label = {
-                Text(
-                    text = stringResource(R.string.password)
-                )
-            },
+            label = { Text(stringResource(R.string.password)) },
             visualTransformation = PasswordVisualTransformation(),
-            isError = passwordError,
-            supportingText = if (passwordError) {
-                {
-                    Text(
-                        stringResource(R.string.password_required)
-                    )
-                }
+            isError = passwordFieldError,
+            supportingText = if (passwordFieldError) {
+                { Text(stringResource(R.string.password_required)) }
             } else {
                 null
             }
         )
 
+        val authErrorText = when (loginError) {
+            LoginError.ACCOUNT_NOT_REGISTERED ->
+                stringResource(R.string.account_not_registered)
+            LoginError.INVALID_CREDENTIALS ->
+                stringResource(R.string.invalid_credentials)
+            null -> null
+        }
+
+        if (authErrorText != null) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = authErrorText,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+
         Spacer(modifier = Modifier.height(20.dp))
 
         Button(
             onClick = {
-                loginError = login.isBlank()
-                passwordError = password.isBlank()
+                loginFieldError = login.isBlank()
+                passwordFieldError = password.isBlank()
 
-                if (!loginError && !passwordError) {
+                if (!loginFieldError && !passwordFieldError) {
                     onLoginClick(login, password)
                 }
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
-                text = stringResource(R.string.login_button)
-            )
+            Text(stringResource(R.string.login_button))
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -239,9 +135,7 @@ fun StartScreen(
             onClick = onRegistrationClick,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
-                text = stringResource(R.string.registration)
-            )
+            Text(stringResource(R.string.registration))
         }
     }
 }
@@ -253,8 +147,10 @@ fun StartScreenPreview() {
         darkTheme = true
     ) {
         StartScreen(
+            registeredLogin = "",
+            loginError = null,
+            onCredentialsChanged = {},
             onRegistrationClick = {},
-            onContentClick = {},
             onLoginClick = { _, _ -> }
         )
     }

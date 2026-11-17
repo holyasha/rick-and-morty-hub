@@ -65,4 +65,8 @@
     <string name="backup_created_message">Backup successfully created.</string>
     <string name="ok">OK</string>
 
+    <string name="account_not_registered">Please register an account first</string>
+    <string name="invalid_credentials">Incorrect login or password</string>
+    <string name="back_to_login">Back to login</string>
+
 </resources>

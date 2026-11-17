@@ -1,5 +1,7 @@
 package com.example.rick_and_morty_hub
 
+import com.example.rick_and_morty_hub.data.model.Character
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,12 +31,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.rick_and_morty_hub.data.CharacterRepository
 import kotlinx.coroutines.launch
-
- data class Character(
-    val id: Int, val name: String, val status: String,
-    val species: String, val gender: String, val origin: String
-)
-
 @Composable
 fun ContentScreen(onSettingsClick: () -> Unit) {
     val context = LocalContext.current
